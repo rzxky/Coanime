@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
+import { trending, popular, latest, search, info } from "./routes/anime";
 
 export function createServer() {
   const app = express();
@@ -18,6 +19,13 @@ export function createServer() {
   });
 
   app.get("/api/demo", handleDemo);
+
+  // Anime proxy routes
+  app.get("/api/anime/trending", trending);
+  app.get("/api/anime/popular", popular);
+  app.get("/api/anime/latest", latest);
+  app.get("/api/anime/search", search);
+  app.get("/api/anime/info/:id", info);
 
   return app;
 }
