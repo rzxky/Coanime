@@ -24,3 +24,22 @@ export async function streamWatchEpisode(episodeId: string, server = 'gogocdn'):
   const subtitles = j?.subtitles || [];
   return { sources, subtitles };
 }
+
+// Gogo direct fallback
+export async function gogoSearch(q: string) {
+  const r = await fetch(`/api/gogo/search?q=${encodeURIComponent(q)}`);
+  const j = await r.json();
+  return j?.results || [];
+}
+export async function gogoInfoById(id: string) {
+  const r = await fetch(`/api/gogo/info/${id}`);
+  const j = await r.json();
+  const episodes: StreamEpisode[] = (j?.episodes || []).map((e: any) => ({ id: e.id || e.episodeId, number: e.number || e.episode, title: e.title, isDub: Boolean(e.isDub || (e.id && String(e.id).toLowerCase().includes('dub'))) }));
+  const hasDub = episodes.some((e) => e.isDub);
+  return { id: j?.id || id, title: j?.title, episodes, hasDub } as StreamInfo;
+}
+export async function gogoWatchEpisode(episodeId: string, server = 'gogocdn') {
+  const r = await fetch(`/api/gogo/watch/${encodeURIComponent(episodeId)}?server=${server}`);
+  const j = await r.json();
+  return { sources: j?.sources || [], subtitles: j?.subtitles || [] };
+}
