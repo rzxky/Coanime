@@ -70,6 +70,13 @@ export default function Watch() {
     enabled: !!currentEpisode?.id,
   });
 
+  // Jikan fallback list (for display only)
+  const { data: jikanEps } = useQuery({
+    queryKey: ["jikan-episodes", id],
+    queryFn: () => fetchEpisodes(id!),
+    enabled: !!id,
+  });
+
   useEffect(() => {
     setCurrentIndex(0);
   }, [filter, streamInfo?.id]);
