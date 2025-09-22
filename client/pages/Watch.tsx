@@ -1,24 +1,67 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchInfo, fetchEpisodes, fetchRecommendations } from "@/lib/animeApi";
+import { fetchInfo, fetchRecommendations } from "@/lib/animeApi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AnimeCard } from "@/components/anime/AnimeCard";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { streamInfoByAnilist, streamSearch, streamWatchEpisode, StreamEpisode } from "@/lib/streamApi";
+import { VideoPlayer } from "@/components/player/VideoPlayer";
+
+type ServerOption = "gogocdn" | "vidstreaming" | "streamsb";
 
 export default function Watch() {
   const { id } = useParams();
   const { data } = useQuery({ queryKey: ["info", id], queryFn: () => fetchInfo(id!), enabled: !!id });
-  const [page, setPage] = useState(1);
-  const { data: eps } = useQuery({ queryKey: ["episodes", id, page], queryFn: () => fetchEpisodes(id!, page), enabled: !!id });
   const { data: recs } = useQuery({ queryKey: ["recs", id], queryFn: () => fetchRecommendations(id!), enabled: !!id });
 
-  if (!data) return (
-    <div className="mx-auto max-w-7xl px-4 py-12"><p className="text-muted-foreground">Loading...</p></div>
-  );
+  const title = data?.title || data?.titles?.[0]?.title;
+
+  const { data: search } = useQuery({
+    queryKey: ["stream-search", title],
+    queryFn: () => streamSearch(title || ""),
+    enabled: !!title,
+  });
+
+  const streamCandidate = useMemo(() => {
+    if (!search?.length) return null;
+    const withMal = search.find((s: any) => s.malId === data?.mal_id);
+    return withMal || search[0];
+  }, [search, data?.mal_id]);
+
+  const { data: streamInfo } = useQuery({
+    queryKey: ["stream-info", streamCandidate?.id],
+    queryFn: () => streamInfoByAnilist(String(streamCandidate!.id)),
+    enabled: !!streamCandidate?.id,
+  });
+
+  const [filter, setFilter] = useState<"sub" | "dub">("sub");
+  const episodes: StreamEpisode[] = useMemo(() => {
+    const eps = streamInfo?.episodes || [];
+    return eps.filter((e) => (filter === "dub" ? e.isDub : !e.isDub));
+  }, [streamInfo?.episodes, filter]);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentEpisode = episodes[currentIndex];
+
+  const [server, setServer] = useState<ServerOption>("gogocdn");
+  const { data: watch } = useQuery({
+    queryKey: ["watch", currentEpisode?.id, server],
+    queryFn: async () => currentEpisode ? streamWatchEpisode(currentEpisode.id, server) : { sources: [] },
+    enabled: !!currentEpisode?.id,
+  });
+
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [filter, streamInfo?.id]);
+
+  if (!data) return <div className="mx-auto max-w-7xl px-4 py-12"><p className="text-muted-foreground">Loading...</p></div>;
 
   const bg = data.images?.jpg?.large_image_url || data.images?.jpg?.image_url;
-  const yt = data.trailer?.youtube_id;
+  const source = (watch?.sources || []).find((s: any) => String(s.url).includes("m3u8"))?.url || (watch?.sources?.[0]?.url ?? undefined);
+
+  const nextEp = () => setCurrentIndex((i) => Math.min(episodes.length - 1, i + 1));
+  const prevEp = () => setCurrentIndex((i) => Math.max(0, i - 1));
 
   return (
     <div className="min-h-screen">
@@ -29,35 +72,25 @@ export default function Watch() {
         </div>
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8 md:flex-row md:gap-10">
           <div className="w-full md:w-2/3">
-            <div className="aspect-video w-full overflow-hidden rounded-lg border bg-black">
-              {yt ? (
-                <iframe
-                  className="h-full w-full"
-                  src={`https://www.youtube.com/embed/${yt}`}
-                  title={data.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground">Trailer unavailable</div>
-              )}
-            </div>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <Button asChild size="sm"><a href="#episodes">Episodes</a></Button>
-              {data.score ? <Badge>⭐ {data.score}</Badge> : null}
-              {data.status ? <Badge variant="secondary">{data.status}</Badge> : null}
-              <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
-                {data.streaming?.map((s) => (
-                  <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="rounded border px-2 py-1 hover:text-foreground">{s.name}</a>
-                ))}
-                {yt ? <a href={`https://www.youtube.com/watch?v=${yt}`} target="_blank" rel="noreferrer" className="rounded border px-2 py-1 hover:text-foreground">YouTube Trailer</a> : null}
+            <VideoPlayer src={source} onNext={nextEp} onPrev={prevEp} title={title} />
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+              <div className="inline-flex rounded border p-1">
+                <Button size="sm" variant={filter === "sub" ? "default" : "ghost"} onClick={() => setFilter("sub")}>Sub</Button>
+                <Button size="sm" variant={filter === "dub" ? "default" : "ghost"} onClick={() => setFilter("dub")}>Dub</Button>
               </div>
+              <div className="inline-flex rounded border p-1">
+                {(["gogocdn", "vidstreaming", "streamsb"] as ServerOption[]).map((s) => (
+                  <Button key={s} size="sm" variant={server === s ? "secondary" : "ghost"} onClick={() => setServer(s)} className="capitalize">{s}</Button>
+                ))}
+              </div>
+              <div className="ml-auto text-muted-foreground">Episode {currentEpisode?.number ?? "—"} / {episodes.length || "—"}</div>
             </div>
             <div className="mt-6 space-y-3">
               <h1 className="text-2xl font-bold">{data.title}</h1>
               {data.synopsis ? <p className="text-sm text-muted-foreground leading-6">{data.synopsis}</p> : null}
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                 {data.genres?.map((g) => <Badge key={g.name} variant="outline">{g.name}</Badge>)}
+                {streamInfo?.hasDub ? <Badge className="bg-accent/90 text-accent-foreground">DUB available</Badge> : null}
               </div>
             </div>
           </div>
@@ -66,7 +99,7 @@ export default function Watch() {
               <h2 className="mb-3 text-sm font-semibold">Details</h2>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground">
                 <dt>Type</dt><dd className="text-foreground">{data.type || "—"}</dd>
-                <dt>Episodes</dt><dd className="text-foreground">{data.episodes ?? "—"}</dd>
+                <dt>Episodes</dt><dd className="text-foreground">{data.episodes ?? episodes.length ?? "—"}</dd>
                 <dt>Duration</dt><dd className="text-foreground">{data.duration ?? "—"}</dd>
                 <dt>Season</dt><dd className="text-foreground">{data.season ?? "—"}</dd>
                 <dt>Studios</dt><dd className="text-foreground">{data.studios?.map(s=>s.name).join(", ") || "—"}</dd>
@@ -78,21 +111,16 @@ export default function Watch() {
       </div>
 
       <div id="episodes" className="mx-auto max-w-7xl px-4 py-8">
-        <h2 className="mb-3 text-lg font-semibold">Episodes</h2>
-        {eps?.data?.length ? (
+        <h2 className="mb-3 text-lg font-semibold">Episodes ({episodes.length})</h2>
+        {episodes?.length ? (
           <div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {eps.data.map((e) => (
-                <a key={e.mal_id} href={data.trailer?.url || "#"} target={data.trailer?.url ? "_blank" : undefined} rel="noreferrer" className="rounded-md border p-2 text-xs hover:bg-accent">
-                  <div className="font-semibold">Ep {e.mal_id}</div>
+              {episodes.map((e, idx) => (
+                <button key={e.id} onClick={() => setCurrentIndex(idx)} className={`rounded-md border p-2 text-xs hover:bg-accent ${idx===currentIndex? 'bg-accent/40 border-accent' : ''}`}>
+                  <div className="font-semibold">Ep {e.number}</div>
                   <div className="mt-1 line-clamp-2 text-muted-foreground">{e.title || "Episode"}</div>
-                </a>
+                </button>
               ))}
-            </div>
-            <div className="mt-3 flex items-center justify-between">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
-              <div className="text-xs text-muted-foreground">Page {page}</div>
-              <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>Next</Button>
             </div>
           </div>
         ) : (
