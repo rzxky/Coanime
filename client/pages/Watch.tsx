@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AnimeCard } from "@/components/anime/AnimeCard";
 import { useEffect, useMemo, useState } from "react";
-import { streamInfoByAnilist, streamSearch, streamWatchEpisode, StreamEpisode } from "@/lib/streamApi";
+import { streamInfoByAnilist, streamSearch, streamWatchEpisode, StreamEpisode, gogoSearch, gogoInfoById, gogoWatchEpisode } from "@/lib/streamApi";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 
 type ServerOption = "gogocdn" | "vidstreaming" | "streamsb";
@@ -99,7 +99,7 @@ export default function Watch() {
               <h2 className="mb-3 text-sm font-semibold">Details</h2>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground">
                 <dt>Type</dt><dd className="text-foreground">{data.type || "—"}</dd>
-                <dt>Episodes</dt><dd className="text-foreground">{data.episodes ?? episodes.length ?? "—"}</dd>
+                <dt>Episodes</dt><dd className="text-foreground">{data.episodes ?? episodes.length ?? "��"}</dd>
                 <dt>Duration</dt><dd className="text-foreground">{data.duration ?? "—"}</dd>
                 <dt>Season</dt><dd className="text-foreground">{data.season ?? "—"}</dd>
                 <dt>Studios</dt><dd className="text-foreground">{data.studios?.map(s=>s.name).join(", ") || "—"}</dd>
