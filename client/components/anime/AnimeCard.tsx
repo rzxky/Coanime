@@ -1,6 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { streamInfoByAnilist, streamSearch } from "@/lib/streamApi";
 
 export type Anime = {
   mal_id: number;
@@ -14,6 +16,32 @@ export type Anime = {
 
 export function AnimeCard({ anime, className }: { anime: Anime; className?: string }) {
   const img = anime.images?.jpg?.large_image_url || anime.images?.jpg?.image_url;
+  const [hasDub, setHasDub] = useState<boolean>(Boolean(anime.hasDub));
+
+  useEffect(() => {
+    if (hasDub) return;
+    let cancelled = false;
+    const key = `dub:${anime.title}`;
+    const cached = (window as any)[key];
+    if (typeof cached === "boolean") {
+      setHasDub(cached);
+      return;
+    }
+    (async () => {
+      try {
+        const s = await streamSearch(anime.title);
+        const first = s?.[0];
+        if (!first) return;
+        const info = await streamInfoByAnilist(String((first as any).id));
+        const dub = Boolean(info?.episodes?.some((e) => e.isDub));
+        (window as any)[key] = dub;
+        if (!cancelled) setHasDub(dub);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anime.title]);
+
   return (
     <a href={`/watch/${anime.mal_id}`} className={cn("group", className)}>
       <Card className="overflow-hidden border-muted/40 bg-card/60 backdrop-blur transition-colors">
@@ -31,7 +59,7 @@ export function AnimeCard({ anime, className }: { anime: Anime; className?: stri
           {anime.score ? (
             <span className="absolute left-2 top-2 rounded-md bg-background/80 px-2 py-0.5 text-xs font-semibold text-foreground shadow ring-1 ring-border">⭐ {anime.score.toFixed(1)}</span>
           ) : null}
-          {anime.hasDub ? (
+          {hasDub ? (
             <span className="absolute right-2 top-2 rounded-md bg-accent/90 px-2 py-0.5 text-[10px] font-extrabold text-accent-foreground shadow ring-1 ring-border">DUB</span>
           ) : null}
         </div>
