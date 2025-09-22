@@ -37,5 +37,9 @@ export function createServer() {
   app.get("/api/stream/info/:id", streamInfo);
   app.get("/api/stream/watch/:episodeId", streamWatch);
 
+  app.get("/api/gogo/search", gogoSearch);
+  app.get("/api/gogo/info/:id", gogoInfo);
+  app.get("/api/gogo/watch/:episodeId", gogoWatch);
+
   return app;
 }
