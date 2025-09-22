@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchInfo, fetchRecommendations } from "@/lib/animeApi";
+import { fetchInfo, fetchRecommendations, fetchEpisodes } from "@/lib/animeApi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AnimeCard } from "@/components/anime/AnimeCard";
