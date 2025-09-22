@@ -9,6 +9,7 @@ export type Anime = {
   score?: number | null;
   type?: string | null;
   year?: number | null;
+  hasDub?: boolean | null;
 };
 
 export function AnimeCard({ anime, className }: { anime: Anime; className?: string }) {
@@ -29,6 +30,9 @@ export function AnimeCard({ anime, className }: { anime: Anime; className?: stri
           )}
           {anime.score ? (
             <span className="absolute left-2 top-2 rounded-md bg-background/80 px-2 py-0.5 text-xs font-semibold text-foreground shadow ring-1 ring-border">⭐ {anime.score.toFixed(1)}</span>
+          ) : null}
+          {anime.hasDub ? (
+            <span className="absolute right-2 top-2 rounded-md bg-accent/90 px-2 py-0.5 text-[10px] font-extrabold text-accent-foreground shadow ring-1 ring-border">DUB</span>
           ) : null}
         </div>
         <CardContent className="p-3">
