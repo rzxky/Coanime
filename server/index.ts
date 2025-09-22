@@ -2,8 +2,25 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
-import { trending, popular, latest, search, info, episodes, recommendations, byGenre, byType } from "./routes/anime";
-import { streamSearch, streamInfo, streamWatch, gogoSearch, gogoInfo, gogoWatch } from "./routes/stream";
+import {
+  trending,
+  popular,
+  latest,
+  search,
+  info,
+  episodes,
+  recommendations,
+  byGenre,
+  byType,
+} from "./routes/anime";
+import {
+  streamSearch,
+  streamInfo,
+  streamWatch,
+  gogoSearch,
+  gogoInfo,
+  gogoWatch,
+} from "./routes/stream";
 
 export function createServer() {
   const app = express();

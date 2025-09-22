@@ -86,7 +86,9 @@ export const byGenre: RequestHandler = async (req, res) => {
   try {
     const ids = String(req.query.ids || "");
     const limit = Number(req.query.limit || 18);
-    const r = await fetch(`${JIKAN_API}/anime?genres=${ids}&order_by=popularity&sort=desc&limit=${limit}`);
+    const r = await fetch(
+      `${JIKAN_API}/anime?genres=${ids}&order_by=popularity&sort=desc&limit=${limit}`,
+    );
     const j = await r.json();
     res.json({ data: j.data ?? [] });
   } catch (e) {
@@ -98,7 +100,9 @@ export const byType: RequestHandler = async (req, res) => {
   try {
     const type = String(req.query.type || "tv");
     const limit = Number(req.query.limit || 18);
-    const r = await fetch(`${JIKAN_API}/anime?type=${encodeURIComponent(type)}&order_by=popularity&sort=desc&limit=${limit}`);
+    const r = await fetch(
+      `${JIKAN_API}/anime?type=${encodeURIComponent(type)}&order_by=popularity&sort=desc&limit=${limit}`,
+    );
     const j = await r.json();
     res.json({ data: j.data ?? [] });
   } catch (e) {

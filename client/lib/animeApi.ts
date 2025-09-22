@@ -55,7 +55,10 @@ export async function fetchInfo(id: string): Promise<AnimeInfo> {
   return j as AnimeInfo;
 }
 
-export async function fetchEpisodes(id: string, page = 1): Promise<{ data: Episode[]; pagination: any }> {
+export async function fetchEpisodes(
+  id: string,
+  page = 1,
+): Promise<{ data: Episode[]; pagination: any }> {
   const r = await fetch(`/api/anime/episodes/${id}?page=${page}`);
   const j = await r.json();
   return { data: j.data as Episode[], pagination: j.pagination };
@@ -68,13 +71,17 @@ export async function fetchRecommendations(id: string): Promise<Anime[]> {
 }
 
 export async function fetchByGenre(ids: string, limit = 18): Promise<Anime[]> {
-  const r = await fetch(`/api/anime/genre?ids=${encodeURIComponent(ids)}&limit=${limit}`);
+  const r = await fetch(
+    `/api/anime/genre?ids=${encodeURIComponent(ids)}&limit=${limit}`,
+  );
   const j = await r.json();
   return j.data as Anime[];
 }
 
 export async function fetchByType(type: string, limit = 18): Promise<Anime[]> {
-  const r = await fetch(`/api/anime/type?type=${encodeURIComponent(type)}&limit=${limit}`);
+  const r = await fetch(
+    `/api/anime/type?type=${encodeURIComponent(type)}&limit=${limit}`,
+  );
   const j = await r.json();
   return j.data as Anime[];
 }

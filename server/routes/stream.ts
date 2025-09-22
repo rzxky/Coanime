@@ -29,7 +29,10 @@ export const streamWatch: RequestHandler = async (req, res) => {
   const episodeId = req.params.episodeId;
   const server = String(req.query.server || "gogocdn");
   const provider = String(req.query.provider || "gogoanime");
-  return proxyJson(`${BASE}/watch/${episodeId}?server=${server}&provider=${provider}`, res);
+  return proxyJson(
+    `${BASE}/watch/${episodeId}?server=${server}&provider=${provider}`,
+    res,
+  );
 };
 
 // Gogoanime direct (fallback)
@@ -47,5 +50,8 @@ export const gogoInfo: RequestHandler = async (req, res) => {
 export const gogoWatch: RequestHandler = async (req, res) => {
   const episodeId = req.params.episodeId;
   const server = String(req.query.server || "gogocdn");
-  return proxyJson(`${GOGO}/watch?episodeId=${encodeURIComponent(episodeId)}&server=${server}`, res);
+  return proxyJson(
+    `${GOGO}/watch?episodeId=${encodeURIComponent(episodeId)}&server=${server}`,
+    res,
+  );
 };
