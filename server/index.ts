@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { handleDemo } from "./routes/demo";
 import { trending, popular, latest, search, info, episodes, recommendations, byGenre, byType } from "./routes/anime";
+import { streamSearch, streamInfo, streamWatch } from "./routes/stream";
 
 export function createServer() {
   const app = express();
@@ -30,6 +31,11 @@ export function createServer() {
   app.get("/api/anime/recommendations/:id", recommendations);
   app.get("/api/anime/genre", byGenre);
   app.get("/api/anime/type", byType);
+
+  // Streaming proxy (Consumet Anilist)
+  app.get("/api/stream/search", streamSearch);
+  app.get("/api/stream/info/:id", streamInfo);
+  app.get("/api/stream/watch/:episodeId", streamWatch);
 
   return app;
 }
