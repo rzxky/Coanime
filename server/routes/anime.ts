@@ -55,3 +55,53 @@ export const info: RequestHandler = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch info" });
   }
 };
+
+export const episodes: RequestHandler = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const page = Number(req.query.page || 1);
+    const r = await fetch(`${JIKAN_API}/anime/${id}/episodes?page=${page}`);
+    const j = await r.json();
+    res.json({ data: j.data ?? [], pagination: j.pagination ?? {} });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch episodes" });
+  }
+};
+
+export const recommendations: RequestHandler = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const r = await fetch(`${JIKAN_API}/anime/${id}/recommendations`);
+    const j = await r.json();
+    const data = Array.isArray(j.data)
+      ? j.data.map((x: any) => x.entry).filter(Boolean)
+      : [];
+    res.json({ data });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch recommendations" });
+  }
+};
+
+export const byGenre: RequestHandler = async (req, res) => {
+  try {
+    const ids = String(req.query.ids || "");
+    const limit = Number(req.query.limit || 18);
+    const r = await fetch(`${JIKAN_API}/anime?genres=${ids}&order_by=popularity&sort=desc&limit=${limit}`);
+    const j = await r.json();
+    res.json({ data: j.data ?? [] });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch by genre" });
+  }
+};
+
+export const byType: RequestHandler = async (req, res) => {
+  try {
+    const type = String(req.query.type || "tv");
+    const limit = Number(req.query.limit || 18);
+    const r = await fetch(`${JIKAN_API}/anime?type=${encodeURIComponent(type)}&order_by=popularity&sort=desc&limit=${limit}`);
+    const j = await r.json();
+    res.json({ data: j.data ?? [] });
+  } catch (e) {
+    res.status(500).json({ error: "Failed to fetch by type" });
+  }
+};
