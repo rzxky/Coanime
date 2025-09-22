@@ -35,11 +35,24 @@ export default function Watch() {
     enabled: !!streamCandidate?.id,
   });
 
+  // Fallback to Gogo if meta/anilist returns no episodes
+  const { data: gogoCandidates } = useQuery({
+    queryKey: ["gogo-search", title],
+    queryFn: () => gogoSearch(title || ""),
+    enabled: !!title,
+  });
+  const gogoFirst = useMemo(() => (gogoCandidates && gogoCandidates[0]?.id ? gogoCandidates[0] : null), [gogoCandidates]);
+  const { data: gogoInfo } = useQuery({
+    queryKey: ["gogo-info", gogoFirst?.id],
+    queryFn: () => gogoInfoById(String(gogoFirst!.id)),
+    enabled: !!gogoFirst?.id && !(streamInfo?.episodes?.length),
+  });
+
   const [filter, setFilter] = useState<"sub" | "dub">("sub");
   const episodes: StreamEpisode[] = useMemo(() => {
-    const eps = streamInfo?.episodes || [];
-    return eps.filter((e) => (filter === "dub" ? e.isDub : !e.isDub));
-  }, [streamInfo?.episodes, filter]);
+    const base = (streamInfo?.episodes?.length ? streamInfo?.episodes : gogoInfo?.episodes) || [];
+    return base.filter((e) => (filter === "dub" ? e.isDub : !e.isDub));
+  }, [streamInfo?.episodes, gogoInfo?.episodes, filter]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentEpisode = episodes[currentIndex];
@@ -47,7 +60,13 @@ export default function Watch() {
   const [server, setServer] = useState<ServerOption>("gogocdn");
   const { data: watch } = useQuery({
     queryKey: ["watch", currentEpisode?.id, server],
-    queryFn: async () => currentEpisode ? streamWatchEpisode(currentEpisode.id, server) : { sources: [] },
+    queryFn: async () => {
+      if (!currentEpisode?.id) return { sources: [] };
+      // Prefer meta watch; fallback to gogo
+      const meta = await streamWatchEpisode(currentEpisode.id, server).catch(() => ({ sources: [] }));
+      if (meta?.sources?.length) return meta;
+      return gogoWatchEpisode(currentEpisode.id, server);
+    },
     enabled: !!currentEpisode?.id,
   });
 
@@ -99,7 +118,7 @@ export default function Watch() {
               <h2 className="mb-3 text-sm font-semibold">Details</h2>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground">
                 <dt>Type</dt><dd className="text-foreground">{data.type || "—"}</dd>
-                <dt>Episodes</dt><dd className="text-foreground">{data.episodes ?? episodes.length ?? "��"}</dd>
+                <dt>Episodes</dt><dd className="text-foreground">{data.episodes ?? episodes.length ?? "—"}</dd>
                 <dt>Duration</dt><dd className="text-foreground">{data.duration ?? "—"}</dd>
                 <dt>Season</dt><dd className="text-foreground">{data.season ?? "—"}</dd>
                 <dt>Studios</dt><dd className="text-foreground">{data.studios?.map(s=>s.name).join(", ") || "—"}</dd>
