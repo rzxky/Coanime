@@ -1,4 +1,4 @@
-import { Moon, Sun, Star } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTheme } from "../theme/ThemeProvider";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
-  const Icon = theme === "light" ? Sun : theme === "dark" ? Moon : Star;
+  const Icon = theme === "light" ? Sun : Moon;
 
   return (
     <DropdownMenu>
@@ -21,9 +21,6 @@ export function ThemeToggle() {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
           <Moon className="mr-2 h-4 w-4" /> Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("night")}>
-          <Star className="mr-2 h-4 w-4" /> Night
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
