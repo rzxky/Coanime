@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-export type ThemeMode = "light" | "dark" | "night";
+export type ThemeMode = "light" | "dark";
 
 type ThemeContextType = {
   theme: ThemeMode;
@@ -15,20 +15,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>("dark");
 
   useEffect(() => {
-    const saved = (localStorage.getItem(STORAGE_KEY) as ThemeMode | null) ?? null;
-    if (saved) applyTheme(saved);
+    const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null;
+    if (saved === "light" || saved === "dark") applyTheme(saved);
     else applyTheme("dark");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const applyTheme = (next: ThemeMode) => {
     const root = document.documentElement;
-    root.classList.remove("dark", "night");
+    root.classList.remove("dark");
     if (next === "dark") root.classList.add("dark");
-    if (next === "night") {
-      root.classList.add("dark");
-      root.classList.add("night");
-    }
     localStorage.setItem(STORAGE_KEY, next);
     setThemeState(next);
   };
