@@ -1,12 +1,17 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchInfo } from "@/lib/animeApi";
+import { fetchInfo, fetchEpisodes, fetchRecommendations } from "@/lib/animeApi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AnimeCard } from "@/components/anime/AnimeCard";
+import { useState } from "react";
 
 export default function Watch() {
   const { id } = useParams();
   const { data } = useQuery({ queryKey: ["info", id], queryFn: () => fetchInfo(id!), enabled: !!id });
+  const [page, setPage] = useState(1);
+  const { data: eps } = useQuery({ queryKey: ["episodes", id, page], queryFn: () => fetchEpisodes(id!, page), enabled: !!id });
+  const { data: recs } = useQuery({ queryKey: ["recs", id], queryFn: () => fetchRecommendations(id!), enabled: !!id });
 
   if (!data) return (
     <div className="mx-auto max-w-7xl px-4 py-12"><p className="text-muted-foreground">Loading...</p></div>
@@ -37,10 +42,16 @@ export default function Watch() {
                 <div className="flex h-full items-center justify-center text-muted-foreground">Trailer unavailable</div>
               )}
             </div>
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <Button asChild size="sm"><a href="#episodes">Episodes</a></Button>
               {data.score ? <Badge>⭐ {data.score}</Badge> : null}
               {data.status ? <Badge variant="secondary">{data.status}</Badge> : null}
+              <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+                {data.streaming?.map((s) => (
+                  <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="rounded border px-2 py-1 hover:text-foreground">{s.name}</a>
+                ))}
+                {yt ? <a href={`https://www.youtube.com/watch?v=${yt}`} target="_blank" rel="noreferrer" className="rounded border px-2 py-1 hover:text-foreground">YouTube Trailer</a> : null}
+              </div>
             </div>
             <div className="mt-6 space-y-3">
               <h1 className="text-2xl font-bold">{data.title}</h1>
@@ -67,8 +78,39 @@ export default function Watch() {
       </div>
 
       <div id="episodes" className="mx-auto max-w-7xl px-4 py-8">
-        <h2 className="mb-4 text-lg font-semibold">Episodes</h2>
-        <p className="text-sm text-muted-foreground">Episode listing coming soon. Use the trailer to preview this anime.</p>
+        <h2 className="mb-3 text-lg font-semibold">Episodes</h2>
+        {eps?.data?.length ? (
+          <div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {eps.data.map((e) => (
+                <a key={e.mal_id} href={data.trailer?.url || "#"} target={data.trailer?.url ? "_blank" : undefined} rel="noreferrer" className="rounded-md border p-2 text-xs hover:bg-accent">
+                  <div className="font-semibold">Ep {e.episode}</div>
+                  <div className="mt-1 line-clamp-2 text-muted-foreground">{e.title || "Episode"}</div>
+                </a>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center justify-between">
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
+              <div className="text-xs text-muted-foreground">Page {page}</div>
+              <Button variant="outline" size="sm" onClick={() => setPage((p) => p + 1)}>Next</Button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No episodes found.</p>
+        )}
+      </div>
+
+      <div className="mx-auto max-w-7xl px-4 pb-12">
+        <h2 className="mb-4 text-lg font-semibold">Suggested anime</h2>
+        {recs?.length ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {recs.map((a) => (
+              <AnimeCard key={a.mal_id} anime={a as any} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No suggestions available.</p>
+        )}
       </div>
     </div>
   );
