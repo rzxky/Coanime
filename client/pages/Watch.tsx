@@ -84,7 +84,7 @@ export default function Watch() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {eps.data.map((e) => (
                 <a key={e.mal_id} href={data.trailer?.url || "#"} target={data.trailer?.url ? "_blank" : undefined} rel="noreferrer" className="rounded-md border p-2 text-xs hover:bg-accent">
-                  <div className="font-semibold">Ep {e.episode}</div>
+                  <div className="font-semibold">Ep {e.mal_id}</div>
                   <div className="mt-1 line-clamp-2 text-muted-foreground">{e.title || "Episode"}</div>
                 </a>
               ))}
