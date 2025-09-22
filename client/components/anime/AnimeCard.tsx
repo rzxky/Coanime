@@ -59,6 +59,7 @@ export function AnimeCard({ anime, className }: { anime: Anime; className?: stri
           {anime.score ? (
             <span className="absolute left-2 top-2 rounded-md bg-background/80 px-2 py-0.5 text-xs font-semibold text-foreground shadow ring-1 ring-border">⭐ {anime.score.toFixed(1)}</span>
           ) : null}
+          <span className="absolute left-2 bottom-2 rounded-md bg-background/80 px-2 py-0.5 text-[10px] font-extrabold text-foreground shadow ring-1 ring-border">SUB</span>
           {hasDub ? (
             <span className="absolute right-2 top-2 rounded-md bg-accent/90 px-2 py-0.5 text-[10px] font-extrabold text-accent-foreground shadow ring-1 ring-border">DUB</span>
           ) : null}
