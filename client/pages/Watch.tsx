@@ -113,10 +113,14 @@ export default function Watch() {
             </div>
             <div className="mt-6 space-y-3">
               <h1 className="text-2xl font-bold">{data.title}</h1>
+              <div className="flex items-center gap-2 text-xs">
+                <Badge variant={filter === 'sub' ? 'default' : 'secondary'}>SUB</Badge>
+                <Badge variant={filter === 'dub' ? 'default' : 'secondary'}>DUB</Badge>
+                {streamInfo?.hasDub ? <span className="text-muted-foreground">(Both available)</span> : <span className="text-muted-foreground">(Sub only)</span>}
+              </div>
               {data.synopsis ? <p className="text-sm text-muted-foreground leading-6">{data.synopsis}</p> : null}
               <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
                 {data.genres?.map((g) => <Badge key={g.name} variant="outline">{g.name}</Badge>)}
-                {streamInfo?.hasDub ? <Badge className="bg-accent/90 text-accent-foreground">DUB available</Badge> : null}
               </div>
             </div>
           </div>
@@ -125,7 +129,7 @@ export default function Watch() {
               <h2 className="mb-3 text-sm font-semibold">Details</h2>
               <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground">
                 <dt>Type</dt><dd className="text-foreground">{data.type || "—"}</dd>
-                <dt>Episodes</dt><dd className="text-foreground">{data.episodes ?? episodes.length ?? "—"}</dd>
+                <dt>Episodes</dt><dd className="text-foreground">{data.episodes ?? episodes.length ?? jikanEps?.data?.length ?? "—"}</dd>
                 <dt>Duration</dt><dd className="text-foreground">{data.duration ?? "—"}</dd>
                 <dt>Season</dt><dd className="text-foreground">{data.season ?? "—"}</dd>
                 <dt>Studios</dt><dd className="text-foreground">{data.studios?.map(s=>s.name).join(", ") || "—"}</dd>
@@ -137,7 +141,7 @@ export default function Watch() {
       </div>
 
       <div id="episodes" className="mx-auto max-w-7xl px-4 py-8">
-        <h2 className="mb-3 text-lg font-semibold">Episodes ({episodes.length})</h2>
+        <h2 className="mb-3 text-lg font-semibold">Episodes ({episodes.length || jikanEps?.data?.length || 0})</h2>
         {episodes?.length ? (
           <div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -148,6 +152,15 @@ export default function Watch() {
                 </button>
               ))}
             </div>
+          </div>
+        ) : jikanEps?.data?.length ? (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+            {jikanEps.data.map((e: any) => (
+              <div key={e.mal_id} className="cursor-not-allowed rounded-md border p-2 text-xs opacity-70">
+                <div className="font-semibold">Ep {e.mal_id}</div>
+                <div className="mt-1 line-clamp-2 text-muted-foreground">{e.title || "Episode"}</div>
+              </div>
+            ))}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">No episodes found.</p>
