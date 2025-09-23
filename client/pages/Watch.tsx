@@ -1,6 +1,12 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { fetchInfo, fetchRecommendations, fetchEpisodes, fetchByGenre, fetchPopular } from "@/lib/animeApi";
+import {
+  fetchInfo,
+  fetchRecommendations,
+  fetchEpisodes,
+  fetchByGenre,
+  fetchPopular,
+} from "@/lib/animeApi";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AnimeCard } from "@/components/anime/AnimeCard";
@@ -32,7 +38,12 @@ export default function Watch() {
   });
 
   const genreIds = useMemo(
-    () => (data?.genres?.map((g) => g.mal_id).filter(Boolean) as number[] | undefined)?.join(",") || "",
+    () =>
+      (
+        data?.genres?.map((g) => g.mal_id).filter(Boolean) as
+          | number[]
+          | undefined
+      )?.join(",") || "",
     [data?.genres],
   );
   const { data: byGenreList } = useQuery({
@@ -299,7 +310,12 @@ export default function Watch() {
       <div className="mx-auto max-w-7xl px-4 pb-12">
         <h2 className="mb-4 text-lg font-semibold">Suggested anime</h2>
         {(() => {
-          const list = (recs && recs.length ? recs : (byGenreList && byGenreList.length ? byGenreList : popularFallback)) || [];
+          const list =
+            (recs && recs.length
+              ? recs
+              : byGenreList && byGenreList.length
+                ? byGenreList
+                : popularFallback) || [];
           return list.length ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {list.slice(0, 12).map((a: any) => (
@@ -307,7 +323,9 @@ export default function Watch() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No suggestions available.</p>
+            <p className="text-sm text-muted-foreground">
+              No suggestions available.
+            </p>
           );
         })()}
       </div>

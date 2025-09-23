@@ -68,7 +68,9 @@ export async function searchAnime(q: string): Promise<Anime[]> {
     const j = await tryJson(`/api/anime/search?q=${encodeURIComponent(q)}`);
     return j.data as Anime[];
   } catch {
-    const j = await tryJson(`${JIKAN}/anime?q=${encodeURIComponent(q)}&sfw=true&order_by=popularity&sort=desc&limit=24`);
+    const j = await tryJson(
+      `${JIKAN}/anime?q=${encodeURIComponent(q)}&sfw=true&order_by=popularity&sort=desc&limit=24`,
+    );
     return j.data as Anime[];
   }
 }
@@ -83,7 +85,10 @@ export async function fetchInfo(id: string): Promise<AnimeInfo> {
   }
 }
 
-export async function fetchEpisodes(id: string, page = 1): Promise<{ data: Episode[]; pagination: any }> {
+export async function fetchEpisodes(
+  id: string,
+  page = 1,
+): Promise<{ data: Episode[]; pagination: any }> {
   try {
     const j = await tryJson(`/api/anime/episodes/${id}?page=${page}`);
     return { data: j.data as Episode[], pagination: j.pagination };
@@ -100,27 +105,37 @@ export async function fetchRecommendations(id: string): Promise<Anime[]> {
   } catch {
     // Jikan recommendations endpoint
     const j = await tryJson(`${JIKAN}/anime/${id}/recommendations`);
-    const data = Array.isArray(j.data) ? j.data.map((x: any) => x.entry).filter(Boolean) : [];
+    const data = Array.isArray(j.data)
+      ? j.data.map((x: any) => x.entry).filter(Boolean)
+      : [];
     return data as Anime[];
   }
 }
 
 export async function fetchByGenre(ids: string, limit = 18): Promise<Anime[]> {
   try {
-    const j = await tryJson(`/api/anime/genre?ids=${encodeURIComponent(ids)}&limit=${limit}`);
+    const j = await tryJson(
+      `/api/anime/genre?ids=${encodeURIComponent(ids)}&limit=${limit}`,
+    );
     return j.data as Anime[];
   } catch {
-    const j = await tryJson(`${JIKAN}/anime?genres=${ids}&order_by=popularity&sort=desc&limit=${limit}`);
+    const j = await tryJson(
+      `${JIKAN}/anime?genres=${ids}&order_by=popularity&sort=desc&limit=${limit}`,
+    );
     return j.data as Anime[];
   }
 }
 
 export async function fetchByType(type: string, limit = 18): Promise<Anime[]> {
   try {
-    const j = await tryJson(`/api/anime/type?type=${encodeURIComponent(type)}&limit=${limit}`);
+    const j = await tryJson(
+      `/api/anime/type?type=${encodeURIComponent(type)}&limit=${limit}`,
+    );
     return j.data as Anime[];
   } catch {
-    const j = await tryJson(`${JIKAN}/anime?type=${encodeURIComponent(type)}&order_by=popularity&sort=desc&limit=${limit}`);
+    const j = await tryJson(
+      `${JIKAN}/anime?type=${encodeURIComponent(type)}&order_by=popularity&sort=desc&limit=${limit}`,
+    );
     return j.data as Anime[];
   }
 }
