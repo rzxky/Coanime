@@ -298,17 +298,18 @@ export default function Watch() {
 
       <div className="mx-auto max-w-7xl px-4 pb-12">
         <h2 className="mb-4 text-lg font-semibold">Suggested anime</h2>
-        {recs?.length ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-            {recs.map((a) => (
-              <AnimeCard key={a.mal_id} anime={a as any} />
-            ))}
-          </div>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            No suggestions available.
-          </p>
-        )}
+        {(() => {
+          const list = (recs && recs.length ? recs : (byGenreList && byGenreList.length ? byGenreList : popularFallback)) || [];
+          return list.length ? (
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+              {list.slice(0, 12).map((a: any) => (
+                <AnimeCard key={a.mal_id} anime={a} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No suggestions available.</p>
+          );
+        })()}
       </div>
     </div>
   );
