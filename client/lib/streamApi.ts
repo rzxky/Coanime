@@ -19,9 +19,18 @@ export type StreamInfo = {
   hasDub?: boolean;
 };
 
+async function safeJson(url: string) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`${r.status}`);
+    return await r.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function streamSearch(q: string): Promise<StreamSearchResult[]> {
-  const r = await fetch(`/api/stream/search?q=${encodeURIComponent(q)}`);
-  const j = await r.json();
+  const j = await safeJson(`/api/stream/search?q=${encodeURIComponent(q)}`);
   const results = j?.results || j?.data || [];
   return results as StreamSearchResult[];
 }
@@ -29,8 +38,7 @@ export async function streamSearch(q: string): Promise<StreamSearchResult[]> {
 export async function streamInfoByAnilist(
   id: string | number,
 ): Promise<StreamInfo> {
-  const r = await fetch(`/api/stream/info/${id}?provider=gogoanime`);
-  const j = await r.json();
+  const j = await safeJson(`/api/stream/info/${id}?provider=gogoanime`);
   const episodes: StreamEpisode[] = (j?.episodes || j?.results || []).map(
     (e: any) => ({
       id: e.id || e.episodeId || String(e.number),
@@ -56,10 +64,9 @@ export async function streamWatchEpisode(
   sources: { url: string; quality?: string }[];
   subtitles?: any[];
 }> {
-  const r = await fetch(
+  const j = await safeJson(
     `/api/stream/watch/${encodeURIComponent(episodeId)}?server=${server}&provider=gogoanime`,
   );
-  const j = await r.json();
   const sources = j?.sources || [];
   const subtitles = j?.subtitles || [];
   return { sources, subtitles };
@@ -67,13 +74,11 @@ export async function streamWatchEpisode(
 
 // Gogo direct fallback
 export async function gogoSearch(q: string) {
-  const r = await fetch(`/api/gogo/search?q=${encodeURIComponent(q)}`);
-  const j = await r.json();
+  const j = await safeJson(`/api/gogo/search?q=${encodeURIComponent(q)}`);
   return j?.results || [];
 }
 export async function gogoInfoById(id: string) {
-  const r = await fetch(`/api/gogo/info/${id}`);
-  const j = await r.json();
+  const j = await safeJson(`/api/gogo/info/${id}`);
   const episodes: StreamEpisode[] = (j?.episodes || []).map((e: any) => ({
     id: e.id || e.episodeId,
     number: e.number || e.episode,
@@ -86,9 +91,8 @@ export async function gogoInfoById(id: string) {
   return { id: j?.id || id, title: j?.title, episodes, hasDub } as StreamInfo;
 }
 export async function gogoWatchEpisode(episodeId: string, server = "gogocdn") {
-  const r = await fetch(
+  const j = await safeJson(
     `/api/gogo/watch/${encodeURIComponent(episodeId)}?server=${server}`,
   );
-  const j = await r.json();
   return { sources: j?.sources || [], subtitles: j?.subtitles || [] };
 }
