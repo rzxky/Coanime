@@ -31,6 +31,20 @@ export default function Watch() {
     enabled: !!id,
   });
 
+  const genreIds = useMemo(
+    () => (data?.genres?.map((g) => g.mal_id).filter(Boolean) as number[] | undefined)?.join(",") || "",
+    [data?.genres],
+  );
+  const { data: byGenreList } = useQuery({
+    queryKey: ["byGenreForAnime", genreIds],
+    queryFn: () => fetchByGenre(genreIds, 12),
+    enabled: Boolean(genreIds),
+  });
+  const { data: popularFallback } = useQuery({
+    queryKey: ["popular-fallback"],
+    queryFn: () => fetchPopular(),
+  });
+
   const title = data?.title || data?.titles?.[0]?.title;
 
   const { data: search } = useQuery({
